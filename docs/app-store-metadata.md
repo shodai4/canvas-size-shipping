@@ -153,8 +153,7 @@ To reach the core feature: enter long and short side in mm to get the nearest ca
 2. **アプリ内課金（広告非表示）が ASC 未登録**。商品を作らないまま提出すると、アプリ内の「広告を消す」が「準備中」で押せない状態になる。審査で「機能していない課金導線」と見られる可能性があるため、商品登録して提出するか、導線ごと外すかを決める。
 3. **6本同時提出のスパム判定（ガイドライン4.3）**。同じ開発者から同じ分野のアプリをまとめて出すため、機能の違いが伝わるよう、概要とレビューメモで「何をするアプリか」を明確にしている。スクリーンショットもアプリごとに別の画面にすること。
 4. **`PrivacyInfo.xcprivacy` は同梱済み**（追跡なし・UserDefaults の利用理由 CA92.1）。
-5. **`.github/workflows/` が無い**（CI の定義は `ci/ios-build.yml` に置いたまま）。このままだと `main` への push では TestFlight が走らないため、提出用ビルドは手元の Xcode で作るか、`ci/ios-build.yml` を `.github/workflows/` に置いて回すかを決める必要がある。
-6. 運賃は各社の公表値を写したもの。改定があったら `Sources/Models/ShippingRateData.swift` を更新する（概要の「2026年11月時点」も合わせる）。
+5. 運賃は各社の公表値を写したもの。改定があったら `Sources/Models/ShippingRateData.swift` を更新する（概要の「2026年11月時点」も合わせる）。
 
 ## 10. 審査で聞かれやすい点と回答
 
