@@ -179,6 +179,29 @@ enum CanvasCatalog {
         all.first { $0.name == name }
     }
 
+    /// その型にある号数（サムホールは空）。
+    static func numbers(of type: CanvasType) -> [Int] {
+        sizes(of: type).compactMap(\.number)
+    }
+
+    /// 型を変えたときの号数。同じ号数があればそのまま、なければいちばん近い号数。
+    static func size(for type: CanvasType, near number: Int) -> CanvasSize {
+        if type == .sm { return samHall }
+        let candidates = sizes(of: type)
+        if let exact = candidates.first(where: { $0.number == number }) { return exact }
+        var best = candidates.first ?? samHall
+        var bestDistance = Int.max
+        for candidate in candidates {
+            guard let value = candidate.number else { continue }
+            let distance = abs(value - number)
+            if distance < bestDistance {
+                best = candidate
+                bestDistance = distance
+            }
+        }
+        return best
+    }
+
     private static func rows(_ type: CanvasType, _ values: [(Int, Int, Int)]) -> [CanvasSize] {
         values.map { CanvasSize(type: type, number: $0.0, longMm: $0.1, shortMm: $0.2) }
     }

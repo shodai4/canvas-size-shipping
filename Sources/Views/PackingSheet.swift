@@ -62,7 +62,7 @@ struct PackingSheet: View {
 
                     VStack(alignment: .leading, spacing: 5) {
                         Text("号数の寸法は、全日本画材協議会の支持体サイズ表と画材店各社の一覧で確認した日本サイズ。")
-                        Text("運賃は\(ShippingRates.originLabel)・\(ShippingRates.updatedLabel)時点の各社公表値。")
+                        Text("運賃は\(ShippingRates.updatedLabel)時点の各社公表値。")
                         Text(ShippingRates.sourceNote)
                     }
                     .font(Theme.mono(9))

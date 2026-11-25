@@ -1,21 +1,28 @@
 import SwiftUI
 
-/// 梱包後の3辺合計と、三社のサイズ区分・運賃。
+/// 梱包後の3辺合計、ヤッコ包みの段ボール、発地と着地、三社の区分と運賃、アート便。
 struct ShippingPanel: View {
     let packed: PackedSize
     let packingSummary: String
+    let yacco: YaccoSheet
     @Binding var framed: Bool
-    @Binding var zone: ShippingZone
+    @Binding var origin: Prefecture
+    @Binding var destination: Prefecture
     let onEditPacking: () -> Void
 
-    private var estimates: [ShippingEstimate] {
-        ShippingCalculator.estimates(totalCm: packed.totalCm,
-                                     longSideCm: packed.longSideCm,
-                                     zone: zone)
+    private var quotes: [ShippingQuote] {
+        ShippingCalculator.quotes(totalCm: packed.totalCm,
+                                  longSideCm: packed.longSideCm,
+                                  origin: origin,
+                                  destination: destination)
     }
 
-    private var advisories: [String] {
-        ShippingAdvisory.messages(totalCm: packed.totalCm, longSideCm: packed.longSideCm)
+    private var artSummary: String? {
+        ArtDelivery.summary(totalCm: packed.totalCm, longSideCm: packed.longSideCm)
+    }
+
+    private var artOptions: [ArtOption] {
+        ArtDelivery.options()
     }
 
     var body: some View {
@@ -55,63 +62,115 @@ struct ShippingPanel: View {
                     .fixedSize()
             }
 
-            Hairline()
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 14) {
-                    ForEach(ShippingZone.allCases) { item in
-                        zoneButton(item)
-                    }
-                }
-                .padding(.vertical, 2)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text("段ボール1枚")
+                    .font(Theme.mono(9.5))
+                    .foregroundStyle(Theme.inkFaint)
+                Text(yacco.text)
+                    .font(Theme.mono(12))
+                    .foregroundStyle(Theme.ink)
+                Text("ミリ")
+                    .font(Theme.mono(9))
+                    .foregroundStyle(Theme.inkFaint)
+                Spacer(minLength: 6)
+                Text("ヤッコ包み")
+                    .font(Theme.mono(9))
+                    .foregroundStyle(Theme.inkFaint)
             }
 
-            Text(zone.detail)
-                .font(Theme.mono(9))
-                .foregroundStyle(Theme.inkFaint)
-                .fixedSize(horizontal: false, vertical: true)
+            Hairline()
+
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                placeMenu(title: "発地", selection: $origin)
+                Text("→")
+                    .font(Theme.mono(10))
+                    .foregroundStyle(Theme.inkFaint)
+                placeMenu(title: "着地", selection: $destination)
+                Spacer(minLength: 0)
+            }
 
             VStack(spacing: 0) {
-                ForEach(estimates) { estimate in
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text(estimate.carrier.name)
-                            .font(Theme.label(11.5))
-                            .foregroundStyle(Theme.ink)
-                        Text(estimate.detail)
+                ForEach(quotes) { quote in
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Text(quote.carrier.name)
+                                .font(Theme.label(11.5))
+                                .foregroundStyle(Theme.ink)
+                            Text(quote.detail)
+                                .font(Theme.mono(9))
+                                .foregroundStyle(Theme.inkFaint)
+                                .lineLimit(1)
+                            Spacer(minLength: 8)
+                            if let fare = quote.fareText {
+                                Text(fare)
+                                    .font(Theme.mono(13, weight: .medium))
+                                    .foregroundStyle(Theme.ink)
+                            } else {
+                                Text("不可")
+                                    .font(Theme.mono(10))
+                                    .foregroundStyle(Theme.warning)
+                            }
+                        }
+                        Text(quote.compensationText)
                             .font(Theme.mono(9))
                             .foregroundStyle(Theme.inkFaint)
-                            .lineLimit(1)
-                        Spacer(minLength: 8)
-                        if let fare = estimate.fareText {
-                            Text(fare)
-                                .font(Theme.mono(13, weight: .medium))
-                                .foregroundStyle(Theme.ink)
-                        } else {
-                            Text("不可")
-                                .font(Theme.mono(10))
-                                .foregroundStyle(Theme.warning)
-                        }
                     }
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 9)
 
-                    if estimate.carrier != estimates.last?.carrier {
+                    if quote.carrier != quotes.last?.carrier {
                         Hairline()
                     }
                 }
             }
 
-            ForEach(advisories, id: \.self) { message in
-                Text(message)
+            if let artSummary {
+                Text(artSummary)
                     .font(Theme.mono(9.5))
                     .foregroundStyle(Theme.warning)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
+            Hairline()
+
+            Text("アート便")
+                .font(Theme.mono(9.5))
+                .foregroundStyle(Theme.inkFaint)
+                .tracking(0.6)
+
+            VStack(spacing: 0) {
+                ForEach(artOptions) { option in
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                            Text(option.name)
+                                .font(Theme.label(11.5))
+                                .foregroundStyle(Theme.ink)
+                            Spacer(minLength: 8)
+                            Text(option.price)
+                                .font(Theme.mono(10))
+                                .foregroundStyle(option.price == "対象外" ? Theme.inkFaint : Theme.inkSoft)
+                        }
+                        Text(option.detail)
+                            .font(Theme.mono(9))
+                            .foregroundStyle(Theme.inkFaint)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.vertical, 8)
+
+                    if option.id != artOptions.last?.id {
+                        Hairline()
+                    }
+                }
+            }
+
+            Text(ArtDelivery.note)
+                .font(Theme.mono(9))
+                .foregroundStyle(Theme.inkFaint)
+                .fixedSize(horizontal: false, vertical: true)
+
             VStack(alignment: .leading, spacing: 3) {
-                Text("\(ShippingRates.originLabel)・\(ShippingRates.updatedLabel)時点の目安")
+                Text("\(ShippingRates.updatedLabel)時点の基本運賃。ヤマトは現金決済、ゆうパックは持込割引後。")
                 Text(ShippingRates.sourceNote)
-                Text("大阪府内あては、ゆうパックで近畿の区分より120円安い。")
-                Text("北陸・南九州などは、同じ区分の中でも数十円差が出る。")
+                Text("北海道・沖縄・離島は中継料や別条件がかかる場合がある。")
                 Text("号数のキャンバスは数キロ程度で、重さの上限には通常届かない。")
                 Text("各社の料金検索で実運賃を確かめられる。")
             }
@@ -121,19 +180,47 @@ struct ShippingPanel: View {
         }
     }
 
-    private func zoneButton(_ item: ShippingZone) -> some View {
-        Button {
-            zone = item
-        } label: {
-            VStack(spacing: 3) {
-                Text(item.label)
-                    .font(Theme.mono(10, weight: item == zone ? .medium : .regular))
-                    .foregroundStyle(item == zone ? Theme.ink : Theme.inkFaint)
-                Rectangle()
-                    .fill(item == zone ? Theme.ink : Color.clear)
-                    .frame(height: 1)
-            }
+    // MARK: - 発地・着地
+
+    private var areas: [String] {
+        var seen: [String] = []
+        for prefecture in Prefecture.allCases where !seen.contains(prefecture.area) {
+            seen.append(prefecture.area)
         }
-        .buttonStyle(.plain)
+        return seen
+    }
+
+    private func prefectures(in area: String) -> [Prefecture] {
+        Prefecture.allCases.filter { $0.area == area }
+    }
+
+    private func placeMenu(title: String, selection: Binding<Prefecture>) -> some View {
+        Menu {
+            ForEach(areas, id: \.self) { area in
+                Section(area) {
+                    ForEach(prefectures(in: area)) { prefecture in
+                        Button {
+                            selection.wrappedValue = prefecture
+                        } label: {
+                            Text(prefecture.name)
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                Text(title)
+                    .font(Theme.mono(9.5))
+                    .foregroundStyle(Theme.inkFaint)
+                Text(selection.wrappedValue.name)
+                    .font(Theme.mono(12, weight: .medium))
+                    .foregroundStyle(Theme.ink)
+                Text("▾")
+                    .font(Theme.mono(8))
+                    .foregroundStyle(Theme.inkFaint)
+            }
+            .contentShape(Rectangle())
+        }
+        .tint(Theme.ink)
     }
 }

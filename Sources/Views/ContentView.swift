@@ -9,11 +9,12 @@ struct ContentView: View {
     @AppStorage("packingMarginMm") private var marginMm: Double = 50
     @AppStorage("packingThicknessMm") private var thicknessMm: Double = 30
     @AppStorage("framed") private var framed: Bool = false
+    @AppStorage("shippingOrigin") private var originRaw: String = Prefecture.defaultPlace.rawValue
+    @AppStorage("shippingDestination") private var destinationRaw: String = Prefecture.defaultPlace.rawValue
 
     @State private var longText = ""
     @State private var shortText = ""
     @State private var selected: CanvasSize = CanvasCatalog.size(named: "F6") ?? CanvasCatalog.samHall
-    @State private var zone: ShippingZone = .kansai
     @State private var isLibraryPresented = false
     @State private var isPackingPresented = false
     @State private var isMemoPresented = false
@@ -32,6 +33,17 @@ struct ContentView: View {
 
     private var packed: PackedSize {
         spec.packed(for: selected)
+    }
+
+    private var origin: Prefecture { Prefecture(rawValue: originRaw) ?? Prefecture.defaultPlace }
+    private var destination: Prefecture { Prefecture(rawValue: destinationRaw) ?? Prefecture.defaultPlace }
+
+    private var originBinding: Binding<Prefecture> {
+        Binding(get: { origin }, set: { originRaw = $0.rawValue })
+    }
+
+    private var destinationBinding: Binding<Prefecture> {
+        Binding(get: { destination }, set: { destinationRaw = $0.rawValue })
     }
 
     private var matches: [CanvasMatch] {
@@ -58,7 +70,7 @@ struct ContentView: View {
                         .padding(.top, 18)
                         .padding(.bottom, 8)
 
-                    SizeDetailView(size: selected,
+                    SizeDetailView(size: $selected,
                                    isFavorite: library.isFavorite(selected),
                                    memo: library.memo(for: selected),
                                    onToggleFavorite: { library.toggleFavorite(selected) },
@@ -70,8 +82,10 @@ struct ContentView: View {
 
                     ShippingPanel(packed: packed,
                                   packingSummary: spec.summary,
+                                  yacco: spec.yaccoSheet(for: packed),
                                   framed: $framed,
-                                  zone: $zone,
+                                  origin: originBinding,
+                                  destination: destinationBinding,
                                   onEditPacking: { isPackingPresented = true })
 
                     Spacer(minLength: 6)

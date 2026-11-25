@@ -1,34 +1,33 @@
 import SwiftUI
 
-/// 選択中の号数。寸法、比率、お気に入り、メモ。
+/// 選択中の号数。型と数字をそれぞれプルダウンで選び、寸法と比率、お気に入り、メモを出す。
 struct SizeDetailView: View {
-    let size: CanvasSize
+    @Binding var size: CanvasSize
     let isFavorite: Bool
     let memo: String
     let onToggleFavorite: () -> Void
     let onEditMemo: () -> Void
 
-    private var goldenDelta: String {
-        String(format: "%+.2f", size.aspect - RatioCanvas.goldenRatio)
-    }
+    /// 型をサムホールから戻したときに使う号数。
+    @State private var lastNumber: Int = 6
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Text(size.name)
-                    .font(Theme.serif(44))
-                    .foregroundStyle(Theme.ink)
+            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                typeMenu
+                if size.type != .sm {
+                    numberMenu
+                }
+                Spacer(minLength: 8)
                 Text(size.type.meaning)
                     .font(Theme.mono(9.5))
                     .foregroundStyle(Theme.inkFaint)
-                Spacer(minLength: 8)
-                Text("\(size.dimensions) ミリ")
-                    .font(Theme.mono(13))
-                    .foregroundStyle(Theme.ink)
             }
 
-            RatioCanvas(aspect: size.aspect)
-                .frame(height: 118)
+            RatioCanvas(aspect: size.aspect,
+                        longMm: size.longMm,
+                        shortMm: size.shortMm)
+                .frame(height: 130)
                 .overlay(
                     Rectangle()
                         .strokeBorder(Theme.hairline, lineWidth: 1)
@@ -41,13 +40,7 @@ struct SizeDetailView: View {
                 Text(String(format: "1 : %.2f", size.aspect))
                     .font(Theme.mono(11))
                     .foregroundStyle(Theme.ink)
-                Spacer(minLength: 8)
-                Text("黄金比 1 : 1.62")
-                    .font(Theme.mono(9))
-                    .foregroundStyle(Theme.inkFaint)
-                Text(goldenDelta)
-                    .font(Theme.mono(9))
-                    .foregroundStyle(Theme.accent)
+                Spacer(minLength: 0)
             }
 
             HStack(spacing: 16) {
@@ -75,6 +68,75 @@ struct SizeDetailView: View {
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
+        }
+        .onAppear { updateLastNumber() }
+    }
+
+    // MARK: - プルダウン
+
+    private var typeMenu: some View {
+        Menu {
+            ForEach(CanvasType.allCases) { type in
+                Button {
+                    select(type: type)
+                } label: {
+                    Text("\(type.code)　\(type.meaning)")
+                }
+            }
+        } label: {
+            HStack(alignment: .firstTextBaseline, spacing: 1) {
+                Text(size.type.code)
+                    .font(Theme.serif(40))
+                    .foregroundStyle(Theme.ink)
+                Text("▾")
+                    .font(Theme.mono(9))
+                    .foregroundStyle(Theme.inkFaint)
+            }
+            .contentShape(Rectangle())
+        }
+        .tint(Theme.ink)
+    }
+
+    private var numberMenu: some View {
+        Menu {
+            ForEach(CanvasCatalog.numbers(of: size.type), id: \.self) { number in
+                Button {
+                    select(number: number)
+                } label: {
+                    Text("\(number)")
+                }
+            }
+        } label: {
+            HStack(alignment: .firstTextBaseline, spacing: 1) {
+                Text(size.number.map { String($0) } ?? "")
+                    .font(Theme.serif(40))
+                    .foregroundStyle(Theme.ink)
+                Text("▾")
+                    .font(Theme.mono(9))
+                    .foregroundStyle(Theme.inkFaint)
+            }
+            .contentShape(Rectangle())
+        }
+        .tint(Theme.ink)
+    }
+
+    // MARK: - 選択
+
+    private func select(type: CanvasType) {
+        size = CanvasCatalog.size(for: type, near: lastNumber)
+        updateLastNumber()
+    }
+
+    private func select(number: Int) {
+        lastNumber = number
+        if let picked = CanvasCatalog.size(named: size.type.code + "\(number)") {
+            size = picked
+        }
+    }
+
+    private func updateLastNumber() {
+        if let number = size.number {
+            lastNumber = number
         }
     }
 }

@@ -13,6 +13,8 @@ struct PackingSpec: Equatable {
     static let frameExtraMm: Double = 30
     /// 額装で厚みに足す分（ミリ）。
     static let frameDepthMm: Double = 20
+    /// ヤッコ包みで、折り返した先を中央で重ねる分（ミリ）。
+    static let foldMm: Double = 15
 
     /// 号数から、梱包後の寸法を出す。
     func packed(for size: CanvasSize) -> PackedSize {
@@ -21,6 +23,12 @@ struct PackingSpec: Equatable {
         return PackedSize(longMm: Double(size.longMm) + marginMm + frameExtra,
                           shortMm: Double(size.shortMm) + marginMm + frameExtra,
                           thicknessMm: thicknessMm + frameDepth)
+    }
+
+    /// ヤッコ包みに使う段ボール1枚の寸法。
+    func yaccoSheet(for packed: PackedSize) -> YaccoSheet {
+        YaccoSheet(widthMm: 2 * packed.shortMm + 2 * packed.thicknessMm + 2 * Self.foldMm,
+                   heightMm: 2 * packed.longMm + 2 * packed.thicknessMm + 2 * Self.foldMm)
     }
 
     /// 余裕と厚みの一行表示。
@@ -48,4 +56,30 @@ struct PackedSize: Equatable {
     var dimensions: String {
         "\(Int(longMm.rounded())) × \(Int(shortMm.rounded())) × \(Int(thicknessMm.rounded()))"
     }
+}
+
+/// 平べったい段ボール1枚からヤッコ包み（たとう包み）で作るときの、必要な1枚の寸法。
+///
+/// 短辺方向は「短辺 × 2 ＋ 厚み × 2 ＋ 折り返し代 × 2」。前と後ろを1枚で覆い、
+/// 左右の縁で厚みの分だけ折れ、折り返した先が中央で重なる長さを見る。
+/// 長辺方向も同じ考えで「長辺 × 2 ＋ 厚み × 2 ＋ 折り返し代 × 2」。
+/// 切り出しやすいよう、10ミリ単位に切り上げる。
+struct YaccoSheet: Equatable {
+    /// 短辺方向の長さ（ミリ）。
+    let widthMm: Int
+    /// 長辺方向の長さ（ミリ）。
+    let heightMm: Int
+
+    init(widthMm: Double, heightMm: Double) {
+        self.widthMm = Self.roundUp(widthMm)
+        self.heightMm = Self.roundUp(heightMm)
+    }
+
+    /// 10ミリ単位に切り上げる。
+    static func roundUp(_ value: Double) -> Int {
+        Int((value / 10).rounded(.up)) * 10
+    }
+
+    /// 「830 × 1010」。単位は別に書く。
+    var text: String { "\(widthMm) × \(heightMm)" }
 }

@@ -16,16 +16,68 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-ZONES = ["kansai", "chubuHokuriku", "kantoShinetsu", "kyushu", "hokkaido"]
-ZONE_LABEL = {
-    "kansai": "関西",
-    "chubuHokuriku": "中部・北陸",
-    "kantoShinetsu": "関東・信越",
-    "kyushu": "九州",
-    "hokkaido": "北海道",
+# 三社の運賃は都道府県の地帯番号で引く。写しの地帯分け。
+PREFECTURES = [
+    "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
+    "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県", "山梨県",
+    "新潟県", "長野県", "富山県", "石川県", "福井県",
+    "岐阜県", "静岡県", "愛知県", "三重県",
+    "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県",
+    "鳥取県", "島根県", "岡山県", "広島県", "山口県",
+    "徳島県", "香川県", "愛媛県", "高知県",
+    "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県",
+]
+
+YAMATO_ZONE = {
+    "北海道": 0,
+    "青森県": 1, "秋田県": 1, "岩手県": 1,
+    "宮城県": 2, "山形県": 2, "福島県": 2,
+    "茨城県": 3, "栃木県": 3, "群馬県": 3, "埼玉県": 3, "千葉県": 3,
+    "神奈川県": 3, "東京都": 3, "山梨県": 3,
+    "新潟県": 4, "長野県": 4,
+    "富山県": 5, "石川県": 5, "福井県": 5,
+    "静岡県": 6, "愛知県": 6, "三重県": 6, "岐阜県": 6,
+    "大阪府": 7, "京都府": 7, "滋賀県": 7, "奈良県": 7, "和歌山県": 7, "兵庫県": 7,
+    "岡山県": 8, "広島県": 8, "山口県": 8, "鳥取県": 8, "島根県": 8,
+    "香川県": 9, "徳島県": 9, "愛媛県": 9, "高知県": 9,
+    "福岡県": 10, "佐賀県": 10, "長崎県": 10, "熊本県": 10, "大分県": 10,
+    "宮崎県": 10, "鹿児島県": 10,
+    "沖縄県": 11,
 }
 
-GOLDEN = 1.618
+SAGAWA_ZONE = {
+    "北海道": 0,
+    "青森県": 1, "岩手県": 1, "秋田県": 1,
+    "宮城県": 2, "山形県": 2, "福島県": 2,
+    "茨城県": 3, "栃木県": 3, "群馬県": 3, "埼玉県": 3, "千葉県": 3,
+    "東京都": 3, "神奈川県": 3, "山梨県": 3,
+    "新潟県": 4, "長野県": 4,
+    "静岡県": 5, "愛知県": 5, "岐阜県": 5, "三重県": 5,
+    "富山県": 6, "石川県": 6, "福井県": 6,
+    "滋賀県": 7, "京都府": 7, "大阪府": 7, "兵庫県": 7, "奈良県": 7, "和歌山県": 7,
+    "鳥取県": 8, "島根県": 8, "岡山県": 8, "広島県": 8, "山口県": 8,
+    "徳島県": 9, "香川県": 9, "愛媛県": 9, "高知県": 9,
+    "福岡県": 10, "佐賀県": 10, "長崎県": 10, "大分県": 10,
+    "熊本県": 11, "宮崎県": 11, "鹿児島県": 11,
+    "沖縄県": 12,
+}
+
+POST_ZONE = {
+    "北海道": 0,
+    "青森県": 1, "岩手県": 1, "宮城県": 1, "秋田県": 1, "山形県": 1, "福島県": 1,
+    "茨城県": 2, "栃木県": 2, "群馬県": 2, "埼玉県": 2, "千葉県": 2,
+    "東京都": 2, "神奈川県": 2, "山梨県": 2,
+    "新潟県": 3, "長野県": 3,
+    "富山県": 4, "石川県": 4, "福井県": 4,
+    "静岡県": 5, "岐阜県": 5, "愛知県": 5, "三重県": 5,
+    "滋賀県": 6, "京都府": 6, "大阪府": 6, "兵庫県": 6, "奈良県": 6, "和歌山県": 6,
+    "鳥取県": 7, "島根県": 7, "岡山県": 7, "広島県": 7, "山口県": 7,
+    "徳島県": 8, "香川県": 8, "愛媛県": 8, "高知県": 8,
+    "福岡県": 9, "佐賀県": 9, "長崎県": 9, "熊本県": 9, "大分県": 9,
+    "宮崎県": 9, "鹿児島県": 9,
+    "沖縄県": 10,
+}
+
 NUMBERS = [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100]
 
 # 日本サイズ（長辺, 短辺）。全日本画材協議会の表と画材店の一覧で確認した値。
@@ -53,44 +105,45 @@ CANVAS = {
     },
     "S": {},
 }
-# S は号数と同じ長辺の正方形。
 CANVAS["S"] = {n: (v[0], v[0]) for n, v in CANVAS["F"].items()}
 SAM_HALL = (227, 158)
 
-# 三社の運賃（関西発・税込）。ZONES の順。
-YAMATO_FARES = {
-    60: [940, 940, 1060, 1060, 1920],
-    80: [1230, 1230, 1350, 1350, 2200],
-    100: [1530, 1530, 1650, 1650, 2510],
-    120: [2040, 2040, 2170, 2170, 3120],
-    140: [2630, 2630, 2780, 2780, 3810],
-    160: [3020, 3020, 3160, 3160, 4180],
-    180: [3680, 3680, 4480, 4480, 6820],
-    200: [4470, 4470, 5410, 5410, 8410],
+# 三社の公表値からの拾い読み（2026年11月時点）。
+YAMATO_SPOT = {
+    ("大阪府", "大阪府", 60): 940,
+    ("大阪府", "東京都", 160): 3160,
+    ("大阪府", "東京都", 100): 1650,
+    ("北海道", "福岡県", 200): 9770,
+    ("沖縄県", "東京都", 60): 1460,
 }
-JAPAN_POST_FARES = {
-    60: [970, 970, 1090, 1090, 1910],
-    80: [1320, 1320, 1440, 1440, 2240],
-    100: [1650, 1650, 1780, 1780, 2590],
-    120: [2010, 2010, 2130, 2130, 2920],
-    140: [2600, 2600, 2760, 2760, 3610],
-    160: [3000, 3000, 3130, 3130, 4000],
-    170: [3680, 3680, 4500, 4500, 6040],
+POST_SPOT = {
+    ("大阪府", "大阪府", 60): 840,
+    ("大阪府", "京都府", 60): 970,
+    ("大阪府", "東京都", 60): 1090,
+    ("大阪府", "北海道", 60): 1910,
+    ("東京都", "東京都", 60): 840,
+    ("北海道", "東京都", 60): 1550,
 }
-SAGAWA_FARES = {
-    60: [910, 910, 1040, 1040, 1820],
-    80: [1220, 1220, 1340, 1340, 2100],
-    100: [1520, 1520, 1630, 1630, 2350],
-    140: [2180, 2180, 2310, 2310, 3090],
-    160: [2440, 2440, 2570, 2570, 3340],
-    170: [2600, 2770, 3360, 3130, 4890],
-    180: [2890, 2950, 3660, 3360, 5480],
-    200: [3480, 3480, 4480, 4070, 6900],
-    220: [4070, 4070, 5240, 4710, 8300],
-    240: [5240, 5240, 6830, 6130, 11070],
-    260: [6420, 6420, 8420, 7480, 13890],
+SAGAWA_SPOT = {
+    ("大阪府", "大阪府", 60): 910,
+    ("大阪府", "東京都", 60): 1040,
+    ("大阪府", "大阪府", 170): 2600,
+    ("大阪府", "沖縄県", 170): 13266,
+    ("東京都", "大阪府", 60): 1040,
 }
-SAGAWA_LARGE = {170, 180, 200, 220, 240, 260}
+
+# 補償と大きさの境目（各社の公表値）。
+COMPENSATION = {
+    "yamato": "補償 30万円まで",
+    "japanPost": "補償 30万円・セキュリティで50万円",
+    "sagawa": "補償 30万円まで",
+}
+
+LIMITS = {
+    "yamato": (200, 30, 170),
+    "japanPost": (170, 25, None),
+    "sagawa": (260, 50, None),
+}
 
 FAILURES = []
 
@@ -129,34 +182,54 @@ def parse_catalog():
     return found
 
 
-def parse_tables():
-    """ShippingRateData.swift から三社の表を読み取る。"""
+def parse_zone_switch(text, header):
+    start = text.index(header)
+    body = text[start:text.index("\n    }", start)]
+    mapping = {}
+    for case, value in re.findall(r"case \.(\w+): return (\d+)", body):
+        mapping[case] = int(value)
+    return mapping
+
+
+def parse_rates():
+    """ShippingRateData.swift から地帯と運賃の表を読み取る。"""
     text = read_source("Sources/Models/ShippingRateData.swift")
-    tables = {}
-    pattern = re.compile(
-        r"CarrierTable\(carrier: \.(\w+),\s*"
-        r"maxCm: (\d+),\s*maxKg: ([\d.]+),\s*"
-        r"maxLongSideCm: (nil|\d+),\s*rows: \[(.*?)\n\s*\]\)",
-        re.S,
-    )
-    for match in pattern.finditer(text):
-        carrier, max_cm, max_kg, max_side, rows_text = match.groups()
-        rows = {}
-        large = set()
-        for row in re.finditer(r"row\((\d+), \[([\d,\s]+)\](, large: true)?\)", rows_text):
-            size = int(row.group(1))
-            values = [int(v.strip()) for v in row.group(2).split(",") if v.strip()]
-            rows[size] = values
-            if row.group(3):
-                large.add(size)
-        tables[carrier] = {
-            "maxCm": int(max_cm),
-            "maxKg": float(max_kg),
-            "maxLongSideCm": None if max_side == "nil" else int(max_side),
-            "rows": rows,
-            "large": large,
-        }
-    return tables
+
+    name_block = text[text.index("var name: String {"):]
+    name_block = name_block[:name_block.index("\n    }")]
+    names = {case: name for case, name in re.findall(r'case \.(\w+): return "([^"]+)"', name_block)}
+
+    zones = {
+        "yamato": parse_zone_switch(text, "var yamatoZone: Int {"),
+        "sagawa": parse_zone_switch(text, "var sagawaZone: Int {"),
+        "post": parse_zone_switch(text, "var postZone: Int {"),
+    }
+
+    def rows(header, keys, follow):
+        start = text.index(header)
+        block = text[start:text.index(follow, start)]
+        parsed = []
+        for values, label in re.findall(r"\[([\d, ]+)\],\s*// ([^\n]+)", block):
+            numbers = [int(v.strip()) for v in values.split(",") if v.strip()]
+            parsed.append((label.strip(), numbers))
+        return parsed
+
+    yamato = rows("static let yamato: [[[Int]]] = [", None, "// MARK: 日本郵便")
+    post = rows("static let post: [[[Int]]] = [", None, "/// 県内運賃")
+    local = rows("static let postLocal: [[Int]] = [", None, "// MARK: 佐川急便")
+    sagawa = rows("static let sagawa: [[[Int]]] = [", None, "// MARK: 引き当て")
+
+    return names, zones, yamato, post, local, sagawa
+
+
+def chunk(rows, origin_count, size_count):
+    """行の並びを [発地][サイズ] に組み直す。"""
+    check(len(rows) == origin_count * size_count,
+          f"行数が {origin_count * size_count} ではなく {len(rows)}")
+    table = []
+    for origin in range(origin_count):
+        table.append([rows[origin * size_count + size][1] for size in range(size_count)])
+    return table
 
 
 # ---------------------------------------------------------------- 計算の写し
@@ -186,6 +259,14 @@ def packed_size(long_mm, short_mm, margin=50, thickness=30, framed=False):
     return packed, total_mm, total_cm
 
 
+def yacco_sheet(long_mm, short_mm, margin=50, thickness=30, framed=False, fold=15):
+    long_packed, short_packed, depth = packed_size(long_mm, short_mm, margin, thickness, framed)[0]
+    width = 2 * short_packed + 2 * depth + 2 * fold
+    height = 2 * long_packed + 2 * depth + 2 * fold
+    round_up = lambda value: math.ceil(value / 10) * 10
+    return round_up(width), round_up(height)
+
+
 def size_class(table, total_cm, long_side_cm, weight_kg=0.0):
     """区分と運賃を出す。送れないときは (None, 理由)。"""
     if total_cm > table["maxCm"]:
@@ -201,22 +282,32 @@ def size_class(table, total_cm, long_side_cm, weight_kg=0.0):
     return None, "上限を超えます"
 
 
-def fare(table, size, zone_index):
-    values = table["rows"].get(size)
-    return None if values is None else values[zone_index]
+def choose_number(numbers, number):
+    """型を変えたときの号数。写し。"""
+    if number in numbers:
+        return number
+    best = numbers[0]
+    best_distance = 10**9
+    for candidate in numbers:
+        distance = abs(candidate - number)
+        if distance < best_distance:
+            best = candidate
+            best_distance = distance
+    return best
 
 
-def advisories(total_cm, long_side_cm):
-    messages = []
+def art_summary(total_cm, long_side_cm):
+    if long_side_cm > 250 or total_cm > 450:
+        return "over450"
     if total_cm > 260:
-        messages.append("over260")
-    elif total_cm > 200:
-        messages.append("over200")
-    elif total_cm > 170:
-        messages.append("over170")
-    if long_side_cm > 170 and total_cm <= 200:
-        messages.append("side170")
-    return messages
+        return "over260"
+    if total_cm > 200:
+        return "over200"
+    if total_cm > 170:
+        return "over170"
+    if long_side_cm > 170:
+        return "side170"
+    return None
 
 
 # ---------------------------------------------------------------- 点検
@@ -288,83 +379,165 @@ def main():
     check(packed_size(1000, 803)[2] == 194, "F40 の3辺合計が 194cm ではありません")
     check(packed_size(180, 140)[2] == 45, "F0 の3辺合計が 45cm ではありません")
 
-    # 5. 運賃表（写しと一致するか）
-    tables = parse_tables()
-    check(set(tables) == {"yamato", "japanPost", "sagawa"}, f"三社の表が揃っていません: {sorted(tables)}")
+    # 5. ヤッコ包み（段ボール1枚）
+    check(yacco_sheet(410, 318) == (830, 1010),
+          f"F6 のヤッコ包みが {yacco_sheet(410, 318)} です")
+    check(yacco_sheet(410, 318, framed=True) == (930, 1110),
+          f"F6 額装のヤッコ包みが {yacco_sheet(410, 318, framed=True)} です")
+    check(yacco_sheet(180, 140) == (470, 550),
+          f"F0 のヤッコ包みが {yacco_sheet(180, 140)} です")
+    # 折り返し代を増やすと、両方向に 20mm ずつ広がる。
+    check(yacco_sheet(410, 318, fold=25) == (850, 1030),
+          f"折り返し25ミリのヤッコ包みが {yacco_sheet(410, 318, fold=25)} です")
 
-    expected = {
-        "yamato": (200, 30, 170, YAMATO_FARES, set()),
-        "japanPost": (170, 25, None, JAPAN_POST_FARES, set()),
-        "sagawa": (260, 50, None, SAGAWA_FARES, SAGAWA_LARGE),
-    }
-    for carrier, (max_cm, max_kg, max_side, fares, large) in expected.items():
-        table = tables[carrier]
-        check(table["maxCm"] == max_cm, f"{carrier} の上限が {table['maxCm']} です")
-        check(table["maxKg"] == max_kg, f"{carrier} の重量上限が {table['maxKg']} です")
-        check(table["maxLongSideCm"] == max_side, f"{carrier} の1辺上限が {table['maxLongSideCm']} です")
-        check(set(table["rows"]) == set(fares), f"{carrier} のサイズ区分が違います: {sorted(table['rows'])}")
-        check(table["large"] == large, f"{carrier} の大型区分が違います: {sorted(table['large'])}")
-        for size, values in fares.items():
-            check(table["rows"].get(size) == values,
-                  f"{carrier} {size} の運賃が {table['rows'].get(size)} です（期待 {values}）")
-            check(len(values) == len(ZONES), f"{carrier} {size} の着地が5つではありません")
+    # 6. 号数の選び方
+    for key in ["F", "P", "M", "S"]:
+        check(sorted(catalog[key]) == NUMBERS, f"{key} の号数が揃っていません")
+    check(choose_number(NUMBERS, 6) == 6, "同じ号数が残りません")
+    check(choose_number(NUMBERS, 7) == 6, "7 号の近い号数が 6 ではありません")
+    check(choose_number([0, 1, 2], 100) == 2, "遠い号数の寄せ先が違います")
+    print("  F の数字:", ", ".join(str(n) for n in NUMBERS[:8]), "…")
 
-    # 6. 区分の境界
-    yamato = tables["yamato"]
-    for total, want in [(60, 60), (61, 80), (100, 100), (159, 160), (160, 160),
-                        (161, 180), (170, 180), (180, 180), (199, 200), (200, 200)]:
-        size, _ = size_class(yamato, total, 100)
+    # 7. 運賃表の形
+    names, zones, yamato_rows, post_rows, local_rows, sagawa_rows = parse_rates()
+
+    check(len(names) == 47, f"都道府県が 47 件ではありません（{len(names)} 件）")
+    for prefecture in PREFECTURES:
+        check(prefecture in names.values(), f"{prefecture} の表示名がありません")
+    for key in ["yamato", "sagawa", "post"]:
+        check(len(zones[key]) == 47, f"{key} の地帯が 47 件ではありません")
+
+    romaji = {name: case for case, name in names.items()}
+    for prefecture in PREFECTURES:
+        case = romaji.get(prefecture)
+        check(case is not None, f"{prefecture} の case がありません")
+        if case is None:
+            continue
+        check(zones["yamato"].get(case) == YAMATO_ZONE[prefecture],
+              f"{prefecture} のヤマトの地帯が違います")
+        check(zones["sagawa"].get(case) == SAGAWA_ZONE[prefecture],
+              f"{prefecture} の佐川の地帯が違います")
+        check(zones["post"].get(case) == POST_ZONE[prefecture],
+              f"{prefecture} の郵便の地帯が違います")
+
+    yamato = chunk(yamato_rows, 12, 8)
+    post = chunk(post_rows, 11, 7)
+    check(len(local_rows) == 47, f"県内運賃が 47 件ではありません（{len(local_rows)} 件）")
+    local = [row[1] for row in local_rows]
+    sagawa = chunk(sagawa_rows, 13, 11)
+
+    check(all(len(row) == 12 for origin in yamato for row in origin), "ヤマトの着地が12地帯ではありません")
+    check(all(len(row) == 11 for origin in post for row in origin), "郵便の着地が11地帯ではありません")
+    check(all(len(row) == 13 for origin in sagawa for row in origin), "佐川の着地が13地帯ではありません")
+
+    # 8. 引き当て（写しと突き合わせ）
+    def yamato_fare(origin, destination, size):
+        index = [60, 80, 100, 120, 140, 160, 180, 200].index(size)
+        return yamato[YAMATO_ZONE[origin]][index][YAMATO_ZONE[destination]]
+
+    def post_fare(origin, destination, size):
+        index = [60, 80, 100, 120, 140, 160, 170].index(size)
+        if origin == destination:
+            return local[PREFECTURES.index(origin)][index]
+        return post[POST_ZONE[origin]][index][POST_ZONE[destination]]
+
+    def sagawa_fare(origin, destination, size):
+        index = [60, 80, 100, 140, 160, 170, 180, 200, 220, 240, 260].index(size)
+        return sagawa[SAGAWA_ZONE[origin]][index][SAGAWA_ZONE[destination]]
+
+    for (origin, destination, size), want in YAMATO_SPOT.items():
+        got = yamato_fare(origin, destination, size)
+        check(got == want, f"ヤマト {origin}→{destination} {size} が {got} です（期待 {want}）")
+    for (origin, destination, size), want in POST_SPOT.items():
+        got = post_fare(origin, destination, size)
+        check(got == want, f"ゆうパック {origin}→{destination} {size} が {got} です（期待 {want}）")
+    for (origin, destination, size), want in SAGAWA_SPOT.items():
+        got = sagawa_fare(origin, destination, size)
+        check(got == want, f"佐川 {origin}→{destination} {size} が {got} です（期待 {want}）")
+
+    # 9. 全組み合わせの整合（対称・区分の単調増加）
+    for origin in PREFECTURES:
+        for destination in PREFECTURES:
+            for size in [60, 80, 100, 140, 160]:
+                check(sagawa_fare(origin, destination, size) == sagawa_fare(destination, origin, size),
+                      f"佐川 {origin}↔{destination} {size} が対称ではありません")
+            for size in [60, 80, 100, 120, 140, 160, 180, 200]:
+                check(yamato_fare(origin, destination, size) == yamato_fare(destination, origin, size),
+                      f"ヤマト {origin}↔{destination} {size} が対称ではありません")
+            for size in [60, 80, 100, 120, 140, 160]:
+                check(post_fare(origin, destination, size) == post_fare(destination, origin, size),
+                      f"ゆうパック {origin}↔{destination} {size} が対称ではありません")
+
+    for origin in PREFECTURES:
+        for destination in PREFECTURES:
+            for fares in (yamato[YAMATO_ZONE[origin]], post[POST_ZONE[origin]], sagawa[SAGAWA_ZONE[origin]]):
+                for row in fares:
+                    check(row[0] > 0, "0 円の運賃があります")
+
+    # 10. 三社の上限と判定
+    yamato_table = {"maxCm": 200, "maxKg": 30.0, "maxLongSideCm": 170,
+                    "rows": {size: None for size in [60, 80, 100, 120, 140, 160, 180, 200]}}
+    post_table = {"maxCm": 170, "maxKg": 25.0, "maxLongSideCm": None,
+                  "rows": {size: None for size in [60, 80, 100, 120, 140, 160, 170]}}
+    sagawa_table = {"maxCm": 260, "maxKg": 50.0, "maxLongSideCm": None,
+                    "rows": {size: None for size in [60, 80, 100, 140, 160, 170, 180, 200, 220, 240, 260]}}
+
+    for total, want in [(60, 60), (61, 80), (86, 100), (160, 160), (161, 180), (200, 200)]:
+        size, _ = size_class(yamato_table, total, 100)
         check(size == want, f"ヤマト {total}cm が {want} ではなく {size}")
-    size, reason = size_class(yamato, 201, 100)
+    size, reason = size_class(yamato_table, 201, 100)
     check(size is None and "上限200cm" in reason, "ヤマト 201cm が送れる判定です")
-    size, reason = size_class(yamato, 180, 171)
+    size, reason = size_class(yamato_table, 180, 171)
     check(size is None and "1辺170cm" in reason, "ヤマト 1辺171cm が送れる判定です")
 
-    post = tables["japanPost"]
     for total, want in [(60, 60), (160, 160), (161, 170), (170, 170)]:
-        size, _ = size_class(post, total, 100)
+        size, _ = size_class(post_table, total, 100)
         check(size == want, f"ゆうパック {total}cm が {want} ではなく {size}")
-    size, reason = size_class(post, 171, 100)
+    size, reason = size_class(post_table, 171, 100)
     check(size is None and "上限170cm" in reason, "ゆうパック 171cm が送れる判定です")
 
-    sagawa = tables["sagawa"]
-    for total, want in [(60, 60), (100, 100), (101, 140), (160, 160), (161, 170),
-                        (220, 220), (260, 260)]:
-        size, _ = size_class(sagawa, total, 100)
+    for total, want in [(60, 60), (100, 100), (101, 140), (160, 160), (161, 170), (260, 260)]:
+        size, _ = size_class(sagawa_table, total, 100)
         check(size == want, f"佐川 {total}cm が {want} ではなく {size}")
-    size, reason = size_class(sagawa, 261, 100)
-    check(size is None and "上限260cm" in reason, "佐川 261cm が送れる判定です")
 
-    # 7. 運賃の拾い読み
-    check(fare(yamato, 160, 0) == 3020, "ヤマト 160 の関西が 3,020 円ではありません")
-    check(fare(yamato, 200, 2) == 5410, "ヤマト 200 の関東が 5,410 円ではありません")
-    check(fare(post, 170, 2) == 4500, "ゆうパック 170 の関東が 4,500 円ではありません")
-    check(fare(sagawa, 260, 0) == 6420, "佐川 260 の関西が 6,420 円ではありません")
-    check(fare(sagawa, 200, 2) == 4480, "佐川 200 の関東が 4,480 円ではありません")
+    # 11. 補償の表示
+    text = read_source("Sources/Models/ShippingRateData.swift")
+    for carrier, message in COMPENSATION.items():
+        check(f'case .{carrier}: return "{message}"' in text,
+              f"{carrier} の補償の文言が違います")
+    for carrier, (max_cm, max_kg, max_side) in LIMITS.items():
+        for header, want in [("var maxCm: Int {", max_cm), ("var maxKg: Double {", max_kg)]:
+            start = text.index(header)
+            block = text[start:text.index("\n    }", start)]
+            found = dict(re.findall(r"case \.(\w+): return ([\d.]+)", block))
+            check(found.get(carrier) is not None and float(found[carrier]) == float(want),
+                  f"{carrier} の {header} が {found.get(carrier)} です（期待 {want}）")
 
-    # 8. 大型便の案内
-    check(advisories(86, 46) == [], "86cm で注意が出ています")
-    check(advisories(171, 100) == ["over170"], "171cm の注意が違います")
-    check(advisories(201, 100) == ["over200"], "201cm の注意が違います")
-    check(advisories(261, 100) == ["over260"], "261cm の注意が違います")
-    check(advisories(180, 171) == ["over170", "side170"], "1辺超過の注意が違います")
+    # 12. アート便の境目
+    check(art_summary(86, 46) is None, "86cm で注意が出ています")
+    check(art_summary(171, 100) == "over170", "171cm の注意が違います")
+    check(art_summary(201, 100) == "over200", "201cm の注意が違います")
+    check(art_summary(261, 100) == "over260", "261cm の注意が違います")
+    check(art_summary(451, 100) == "over450", "451cm の注意が違います")
+    check(art_summary(300, 251) == "over450", "最長辺251cm の注意が違います")
 
-    # 9. 代表的な号数の3辺合計と判定
+    # 13. 代表的な号数の3辺合計と判定
     print()
     for name in ["F0", "F6", "F10", "F20", "F30", "F50", "F100", "SM"]:
         long_side, short_side = flat[name]
         _, _, total = packed_size(long_side, short_side)
-        y_size, _ = size_class(yamato, total, long_side / 10)
-        p_size, _ = size_class(post, total, long_side / 10)
-        s_size, _ = size_class(sagawa, total, long_side / 10)
+        y_size, _ = size_class(yamato_table, total, long_side / 10)
+        p_size, _ = size_class(post_table, total, long_side / 10)
+        s_size, _ = size_class(sagawa_table, total, long_side / 10)
+        sheet = yacco_sheet(long_side, short_side)
         print(f"  {name:>4}  {long_side}×{short_side}  3辺 {total:>3}cm  "
-              f"ヤマト {y_size}  ゆう {p_size}  佐川 {s_size}")
+              f"ヤマト {y_size}  ゆう {p_size}  佐川 {s_size}  段ボール {sheet[0]}×{sheet[1]}")
 
     print()
     if FAILURES:
         print(f"{len(FAILURES)} 件の不一致")
         return 1
-    print(f"すべて一致（号数 {len(flat)} 件、三社 {len(tables)} 表）")
+    print(f"すべて一致（号数 {len(flat)} 件、三社 {len(yamato)}/{len(post)}/{len(sagawa)} 地帯）")
     return 0
 
 
