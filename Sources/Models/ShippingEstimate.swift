@@ -124,7 +124,7 @@ enum ArtDelivery {
                       price: "見積もり"),
             ArtOption(name: "家財おまかせ便",
                       detail: "3辺450cm・最長辺250cm・150kgまで（A〜Gランク）。美術品・骨董品・代替のきかない物は扱わない。",
-                      price: "対象外")
+                      price: "美術品は不可")
         ]
     }
 

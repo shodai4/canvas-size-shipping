@@ -110,7 +110,7 @@ SAM_HALL = (227, 158)
 
 # 三社の公表値からの拾い読み（2026年11月時点）。
 YAMATO_SPOT = {
-    ("大阪府", "大阪府", 60): 940,
+    ("大阪府", "大阪府", 60): 790,
     ("大阪府", "東京都", 160): 3160,
     ("大阪府", "東京都", 100): 1650,
     ("北海道", "福岡県", 200): 9770,
@@ -431,8 +431,12 @@ def main():
     check(all(len(row) == 13 for origin in sagawa for row in origin), "佐川の着地が13地帯ではありません")
 
     # 8. 引き当て（写しと突き合わせ）
+    yamato_local = [790, 1090, 1410, 1730, 2090, 2410, 3030, 3690]
+
     def yamato_fare(origin, destination, size):
         index = [60, 80, 100, 120, 140, 160, 180, 200].index(size)
+        if origin == destination and origin != "沖縄県":
+            return yamato_local[index]
         return yamato[YAMATO_ZONE[origin]][index][YAMATO_ZONE[destination]]
 
     def post_fare(origin, destination, size):
@@ -454,6 +458,12 @@ def main():
     for (origin, destination, size), want in SAGAWA_SPOT.items():
         got = sagawa_fare(origin, destination, size)
         check(got == want, f"佐川 {origin}→{destination} {size} が {got} です（期待 {want}）")
+
+    # 8b. 同一都道府県内運賃（ヤマト）。沖縄県発は対象外なので地帯の額のまま。
+    check(yamato_fare("大阪府", "大阪府", 60) == 790, "ヤマト 大阪→大阪 60 が県内運賃ではありません")
+    check(yamato_fare("東京都", "東京都", 200) == 3690, "ヤマト 東京→東京 200 が県内運賃ではありません")
+    check(yamato_fare("沖縄県", "沖縄県", 60) == 940, "ヤマト 沖縄→沖縄 60 が地帯の額ではありません")
+    check(yamato_fare("大阪府", "京都府", 60) == 940, "ヤマト 大阪→京都 60 が地帯の額ではありません")
 
     # 9. 全組み合わせの整合（対称・区分の単調増加）
     for origin in PREFECTURES:

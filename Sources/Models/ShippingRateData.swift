@@ -366,7 +366,8 @@ enum Carrier: String, CaseIterable, Identifiable, Codable {
 /// 2026年11月時点で各社が公表している基本運賃（税込）。
 ///
 /// - ヤマト運輸「運賃表（2025年10月1日から運用・現金決済）」。
-///   60〜200サイズ、3辺合計200センチ・1辺170センチ・30キロまで。沖縄県発着も同表。
+///   60〜200サイズ、3辺合計200センチ・1辺170センチ・30キロまで。沖縄県発着は改定の対象外で、
+///   同表には従前の額が載る。同じ都道府県どうしは「同一都道府県内運賃」を使う（沖縄県発は対象外）。
 /// - 日本郵便「ゆうパック運賃等早見表（2026年10月1日現在）」。60〜170サイズ、
 ///   3辺合計170センチ・25キロまで（25キロ超30キロは重量ゆうパックで+620円）。
 ///   額は持込割引（1個120円）適用後。
@@ -386,6 +387,9 @@ enum ShippingRates {
     // MARK: ヤマト運輸（12地帯）
 
     static let yamatoSizes: [Int] = [60, 80, 100, 120, 140, 160, 180, 200]
+
+    /// 同一都道府県内運賃。どの都道府県でも同じ額で、沖縄県からの発送は対象外。
+    static let yamatoLocal: [Int] = [790, 1090, 1410, 1730, 2090, 2410, 3030, 3690]
 
     /// fares[発地帯][サイズ][着地帯]。
     static let yamato: [[[Int]]] = [
@@ -905,6 +909,9 @@ enum ShippingRates {
         switch carrier {
         case .yamato:
             guard let index = sizeIndex(for: totalCm, sizes: yamatoSizes) else { return nil }
+            if origin == destination && origin != .okinawa {
+                return yamatoLocal[index]
+            }
             return yamato[origin.yamatoZone][index][destination.yamatoZone]
         case .japanPost:
             guard let index = sizeIndex(for: totalCm, sizes: postSizes) else { return nil }

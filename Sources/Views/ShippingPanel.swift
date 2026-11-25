@@ -147,7 +147,7 @@ struct ShippingPanel: View {
                             Spacer(minLength: 8)
                             Text(option.price)
                                 .font(Theme.mono(10))
-                                .foregroundStyle(option.price == "対象外" ? Theme.inkFaint : Theme.inkSoft)
+                                .foregroundStyle(option.price.contains("不可") ? Theme.warning : Theme.inkSoft)
                         }
                         Text(option.detail)
                             .font(Theme.mono(9))
@@ -170,8 +170,9 @@ struct ShippingPanel: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text("\(ShippingRates.updatedLabel)時点の基本運賃。ヤマトは現金決済、ゆうパックは持込割引後。")
                 Text(ShippingRates.sourceNote)
-                Text("北海道・沖縄・離島は中継料や別条件がかかる場合がある。")
-                Text("号数のキャンバスは数キロ程度で、重さの上限には通常届かない。")
+                Text("同じ都道府県どうしは県内運賃。北海道・沖縄・離島は中継料や別条件がかかる場合がある。")
+                Text("ヤマトと佐川は、1梱包30万円を超える荷物を引き受けられない。")
+                Text("ゆうパックは、セキュリティサービス420円で補償が50万円まで。")
                 Text("各社の料金検索で実運賃を確かめられる。")
             }
             .font(Theme.mono(9))
