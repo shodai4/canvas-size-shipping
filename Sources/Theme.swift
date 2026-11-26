@@ -20,6 +20,10 @@ enum Theme {
     static let hairline = Color(hex: 0x1A1A1B).opacity(0.10)
     /// 大型便の注意。静かな赤。
     static let warning = Color(hex: 0x8C3A32)
+    /// 木枠 #8A7358（3Dの額縁）
+    static let wood = Color(hex: 0x8A7358)
+    /// 木枠の陰 #6B5644（3Dの側面）
+    static let woodDeep = Color(hex: 0x6B5644)
 
     /// 説明の文字。
     static func label(_ size: CGFloat = 12, weight: Font.Weight = .regular) -> Font {

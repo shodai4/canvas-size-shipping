@@ -1,8 +1,12 @@
 import SwiftUI
 
-/// 選択中の号数。型と数字をそれぞれプルダウンで選び、寸法と比率、お気に入り、メモを出す。
+/// 選択中の号数。型と数字をそれぞれプルダウンで選び、2Dの寸法図か3Dの厚みを見る。
 struct SizeDetailView: View {
     @Binding var size: CanvasSize
+    /// 梱包後の厚み（ミリ）。3Dの側面に使う。
+    let thicknessMm: Double
+    /// 額装の有無。3Dの額縁に使う。
+    let framed: Bool
     let isFavorite: Bool
     let memo: String
     let onToggleFavorite: () -> Void
@@ -10,49 +14,34 @@ struct SizeDetailView: View {
 
     /// 型をサムホールから戻したときに使う号数。
     @State private var lastNumber: Int = 6
+    /// 2Dの寸法図か、3Dの厚みか。
+    @AppStorage("showsCanvas3D") private var shows3D: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 typeMenu
                 if size.type != .sm {
                     numberMenu
                 }
                 Spacer(minLength: 8)
-                Text(size.type.meaning)
-                    .font(Theme.mono(9.5))
-                    .foregroundStyle(Theme.inkFaint)
-            }
-
-            RatioCanvas(aspect: size.aspect,
-                        longMm: size.longMm,
-                        shortMm: size.shortMm)
-                .frame(height: 130)
-                .overlay(
-                    Rectangle()
-                        .strokeBorder(Theme.hairline, lineWidth: 1)
-                )
-
-            HStack(spacing: 8) {
-                Text("比率")
-                    .font(Theme.mono(9.5))
-                    .foregroundStyle(Theme.inkFaint)
                 Text(String(format: "1 : %.2f", size.aspect))
-                    .font(Theme.mono(11))
-                    .foregroundStyle(Theme.ink)
-                Spacer(minLength: 0)
+                    .font(Theme.mono(10))
+                    .foregroundStyle(Theme.inkFaint)
             }
 
-            HStack(spacing: 16) {
+            figure
+
+            HStack(spacing: 18) {
                 Button(action: onToggleFavorite) {
-                    Text(isFavorite ? "お気に入りから外す" : "お気に入りに入れる")
-                        .font(Theme.mono(10))
+                    Text("お気に入り")
+                        .font(Theme.mono(10, weight: isFavorite ? .medium : .regular))
                         .foregroundStyle(isFavorite ? Theme.accent : Theme.inkSoft)
                 }
                 .buttonStyle(.plain)
 
                 Button(action: onEditMemo) {
-                    Text(memo.isEmpty ? "作品メモを書く" : "作品メモを直す")
+                    Text("メモ")
                         .font(Theme.mono(10))
                         .foregroundStyle(Theme.inkSoft)
                 }
@@ -70,6 +59,47 @@ struct SizeDetailView: View {
             }
         }
         .onAppear { updateLastNumber() }
+    }
+
+    // MARK: - 図
+
+    private var figure: some View {
+        ZStack(alignment: .topTrailing) {
+            Group {
+                if shows3D {
+                    Canvas3DView(longMm: size.longMm,
+                                 shortMm: size.shortMm,
+                                 thicknessMm: thicknessMm,
+                                 framed: framed)
+                } else {
+                    RatioCanvas(aspect: size.aspect,
+                                longMm: size.longMm,
+                                shortMm: size.shortMm)
+                }
+            }
+            .frame(height: 150)
+            .frame(maxWidth: .infinity)
+            .background(Theme.paper)
+            .overlay(
+                Rectangle()
+                    .strokeBorder(Theme.hairline, lineWidth: 1)
+            )
+
+            HStack(spacing: 10) {
+                modeButton("2D", selected: !shows3D) { shows3D = false }
+                modeButton("3D", selected: shows3D) { shows3D = true }
+            }
+            .padding(8)
+        }
+    }
+
+    private func modeButton(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(Theme.mono(9, weight: selected ? .medium : .regular))
+                .foregroundStyle(selected ? Theme.ink : Theme.inkFaint)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - プルダウン

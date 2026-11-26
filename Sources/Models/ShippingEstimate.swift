@@ -16,11 +16,11 @@ struct ShippingQuote: Identifiable {
 
     var isAvailable: Bool { fare != nil }
 
-    /// 「160サイズ」「ラージ 200サイズ」「上限200cmを超えます」などの一行。
+    /// 「160サイズ」「ラージ200」「上限200cm超」などの一行。
     var detail: String {
         if let reason { return reason }
         guard let sizeCm else { return "区分なし" }
-        return isLarge ? "ラージ \(sizeCm)サイズ" : "\(sizeCm)サイズ"
+        return isLarge ? "ラージ\(sizeCm)" : "\(sizeCm)サイズ"
     }
 
     /// 「2,630円」。送れないときは nil。
@@ -28,9 +28,6 @@ struct ShippingQuote: Identifiable {
         guard let fare else { return nil }
         return "\(Self.grouped(fare))円"
     }
-
-    /// 補償の一行。
-    var compensationText: String { carrier.compensation }
 
     /// 3桁ごとの区切り。端末の言語設定に左右されないよう、ここで決める。
     static func grouped(_ value: Int) -> String {
@@ -67,13 +64,13 @@ enum ShippingCalculator {
                               origin: Prefecture,
                               destination: Prefecture) -> ShippingQuote {
         if totalCm > carrier.maxCm {
-            return unavailable(carrier, reason: "上限\(carrier.maxCm)cmを超えます")
+            return unavailable(carrier, reason: "上限\(carrier.maxCm)cm超")
         }
         if let limit = carrier.maxSideCm, longSideCm > limit {
-            return unavailable(carrier, reason: "1辺\(limit)cmを超えます")
+            return unavailable(carrier, reason: "1辺\(limit)cm超")
         }
         if weightKg > carrier.maxKg {
-            return unavailable(carrier, reason: "重さ\(Int(carrier.maxKg))キロを超えます")
+            return unavailable(carrier, reason: "重さ\(Int(carrier.maxKg))kg超")
         }
         guard let sizeCm = ShippingRates.sizeCm(carrier: carrier, totalCm: totalCm) else {
             return unavailable(carrier, reason: "上限を超えます")
@@ -83,7 +80,7 @@ enum ShippingCalculator {
                                             destination: destination,
                                             totalCm: totalCm,
                                             weightKg: weightKg) else {
-            return unavailable(carrier, reason: "この区間の運賃は未収録です")
+            return unavailable(carrier, reason: "未収録")
         }
         return ShippingQuote(carrier: carrier,
                              sizeCm: sizeCm,
@@ -102,48 +99,45 @@ enum ShippingCalculator {
 /// 美術品・大型作品の輸送。金額は公表されていないので、見積もりか対象外だけを示す。
 struct ArtOption: Identifiable {
     let name: String
-    let detail: String
-    /// 「見積もり」「対象外」。
-    let price: String
+    /// 公式ページ。
+    let url: URL?
+    /// 見積もりを受けられる便か。
+    let isAvailable: Bool
 
     var id: String { name }
+
+    /// 「見積もり ↗」「対象外」。
+    var label: String {
+        isAvailable ? "見積もり ↗" : "対象外"
+    }
 }
 
 enum ArtDelivery {
-    /// 一点物の扱い。図の下に一行だけ添える。
-    static let note = "ヤマトの宅急便は15号以下の絵画ならアートボックスで送れる。一点物・額装・大型は美術便へ。"
-
-    /// 三社のほかに並べる便。
+    /// 三社のほかに並べる便。説明は注記シートに置く。
     static func options() -> [ArtOption] {
         [
-            ArtOption(name: "ヤマト 美術便",
-                      detail: "絵画・彫刻・屏風など。美術品専門のスタッフが梱包から運ぶ。事前予約制で、混載は最短1週間ほど、国内は数万円から。",
-                      price: "見積もり"),
-            ArtOption(name: "佐川 美術品輸送",
-                      detail: "美術品専用車。学芸員資格を持つスタッフが搬入・展示・撤去まで対応する。",
-                      price: "見積もり"),
-            ArtOption(name: "家財おまかせ便",
-                      detail: "3辺450cm・最長辺250cm・150kgまで（A〜Gランク）。美術品・骨董品・代替のきかない物は扱わない。",
-                      price: "美術品は不可")
+            ArtOption(name: "ヤマト 美術便", url: OfficialLinks.yamatoArt, isAvailable: true),
+            ArtOption(name: "佐川 美術品輸送", url: OfficialLinks.sagawaArt, isAvailable: true),
+            ArtOption(name: "家財おまかせ便", url: OfficialLinks.artSetting, isAvailable: false)
         ]
     }
 
     /// 大きさに応じた一行。小さければ何も出さない。
     static func summary(totalCm: Int, longSideCm: Int) -> String? {
         if longSideCm > 250 || totalCm > 450 {
-            return "この大きさは家財おまかせ便でも扱えません。美術便かチャーターでの手配になり、運賃は見積もりです。"
+            return "美術便かチャーターで見積もり。"
         }
         if totalCm > 260 {
-            return "3辺合計が260cmを超えます。三社の通常便では送れません。美術品は家財おまかせ便の対象外なので、美術便で見積もりになります。"
+            return "通常便では送れません。美術便へ。"
         }
         if totalCm > 200 {
-            return "3辺合計が200cmを超えます。宅急便は使えません。佐川のラージサイズか、美術品なら美術便になります。"
+            return "宅急便は不可。佐川ラージか美術便。"
         }
         if totalCm > 170 {
-            return "3辺合計が170cmを超えます。ゆうパックは使えません。ヤマトの180・200サイズか、佐川のラージサイズになります。"
+            return "ゆうパックは不可。ヤマト180・200か佐川ラージ。"
         }
         if longSideCm > 170 {
-            return "1辺が170cmを超えます。宅急便では送れません。佐川のラージサイズか、美術品なら美術便になります。"
+            return "宅急便は不可。佐川ラージか美術便。"
         }
         return nil
     }

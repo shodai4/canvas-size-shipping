@@ -343,11 +343,12 @@ enum Carrier: String, CaseIterable, Identifiable, Codable {
     }
 
     /// 補償の上限。各社が公表する責任限度額。
+    /// 一覧の補償の欄。上限額だけを短く。
     var compensation: String {
         switch self {
-        case .yamato: return "補償 30万円まで"
-        case .japanPost: return "補償 30万円・セキュリティで50万円"
-        case .sagawa: return "補償 30万円まで"
+        case .yamato: return "30万"
+        case .japanPost: return "30万(50万)"
+        case .sagawa: return "30万"
         }
     }
 

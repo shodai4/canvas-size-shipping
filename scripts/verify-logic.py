@@ -134,9 +134,9 @@ SAGAWA_SPOT = {
 
 # 補償と大きさの境目（各社の公表値）。
 COMPENSATION = {
-    "yamato": "補償 30万円まで",
-    "japanPost": "補償 30万円・セキュリティで50万円",
-    "sagawa": "補償 30万円まで",
+    "yamato": "30万",
+    "japanPost": "30万(50万)",
+    "sagawa": "30万",
 }
 
 LIMITS = {
@@ -530,6 +530,93 @@ def main():
     check(art_summary(261, 100) == "over260", "261cm の注意が違います")
     check(art_summary(451, 100) == "over450", "451cm の注意が違います")
     check(art_summary(300, 251) == "over450", "最長辺251cm の注意が違います")
+
+    # 14. 記録（条件・履歴・展示・再参照）
+    records_text = read_source("Sources/Models/RecordModels.swift")
+    store_text = read_source("Sources/Store/RecordStore.swift")
+    content_text = read_source("Sources/Views/ContentView.swift")
+    panel_text = read_source("Sources/Views/ShippingPanel.swift")
+    notes_text = read_source("Sources/Views/ShippingNotesSheet.swift")
+    links_text = read_source("Sources/Models/OfficialLinks.swift")
+
+    conditions_block = records_text[records_text.index("struct CalculationConditions"):]
+    conditions_block = conditions_block[:conditions_block.index("\n}")]
+    for field in ["sizeName", "marginMm", "thicknessMm", "framed", "origin", "destination"]:
+        check(f"var {field}" in conditions_block, f"条件に {field} がありません")
+
+    check("quotes.compactMap(\\.fare).min()" in records_text, "最安運賃の求め方が変わりました")
+    check('defaultsKey = "canvasRecords"' in store_text, "保存の鍵が違います")
+    check("historyLimit = 80" in store_text, "履歴の上限が違います")
+    check("records[index].exhibitionID = nil" in store_text,
+          "展示を消したときに記録が未整理へ戻りません")
+    check("$0.conditions == conditions" in store_text, "同じ条件の重複をまとめていません")
+    check("UserDefaults.standard.set(data" in store_text, "端末内へ保存していません")
+    for line in ["selected = conditions.size",
+                 "marginMm = conditions.marginMm",
+                 "thicknessMm = conditions.thicknessMm",
+                 "framed = conditions.framed",
+                 "originRaw = conditions.origin",
+                 "destinationRaw = conditions.destination"]:
+        check(line in content_text, f"再参照で {line} を戻していません")
+
+    # 15. 最安の判定と展示の合計
+    def lowest_fare(origin, destination, total_cm, long_cm):
+        fares = []
+        size, _ = size_class(yamato_table, total_cm, long_cm)
+        if size is not None:
+            fares.append(yamato_fare(origin, destination, size))
+        size, _ = size_class(post_table, total_cm, long_cm)
+        if size is not None:
+            fares.append(post_fare(origin, destination, size))
+        size, _ = size_class(sagawa_table, total_cm, long_cm)
+        if size is not None:
+            fares.append(sagawa_fare(origin, destination, size))
+        return min(fares) if fares else None
+
+    # F0 は梱包後 45cm（三社とも60サイズ）、F6 は 86cm（100サイズ）。
+    check(lowest_fare("大阪府", "大阪府", 45, 18) == 790,
+          f"F0 大阪→大阪 の最安が {lowest_fare('大阪府', '大阪府', 45, 18)} 円です")
+    check(lowest_fare("大阪府", "東京都", 45, 18) == 1040,
+          f"F0 大阪→東京 の最安が {lowest_fare('大阪府', '東京都', 45, 18)} 円です")
+    check(lowest_fare("大阪府", "東京都", 86, 46) == 1630,
+          f"F6 大阪→東京 の最安が {lowest_fare('大阪府', '東京都', 86, 46)} 円です")
+    check(lowest_fare("大阪府", "大阪府", 86, 46) == 1410,
+          f"F6 大阪→大阪 の最安が {lowest_fare('大阪府', '大阪府', 86, 46)} 円です")
+    show_total = lowest_fare("大阪府", "大阪府", 45, 18) + lowest_fare("大阪府", "東京都", 45, 18)
+    check(show_total == 1830, f"展示の送料目安の合計が {show_total} 円です")
+
+    # 16. 短い表示と公式リンク
+    short_names = {}
+    for case, name in names.items():
+        short = name[:-1] if name.endswith(("都", "府", "県")) else name
+        short_names[case] = short
+        check(bool(short), f"{name} の短い表示が空です")
+    check(len(set(short_names.values())) == 47, "都道府県の短い表示が重なっています")
+    check(short_names.get("osaka") == "大阪", "大阪府の短い表示が違います")
+    check(short_names.get("hokkaido") == "北海道", "北海道の短い表示が違います")
+    check(short_names.get("tokyo") == "東京", "東京都の短い表示が違います")
+
+    urls = [
+        "https://date.kuronekoyamato.co.jp/date/Main",
+        "https://business.kuronekoyamato.co.jp/promotion/art/bijutsubin.html",
+        "https://www.post.japanpost.jp/cgi-simulator/youpack.php/",
+        "https://www.sagawa-exp.co.jp/customer/send/service/takuhai/",
+        "https://www.sagawa-exp.co.jp/business/send/service/art/",
+        "https://www.008008.jp/transport/",
+    ]
+    for url in urls:
+        check(url in links_text, f"公式ページ {url} がありません")
+    check("Link(destination:" in panel_text, "一覧の行が公式ページへのリンクになっていません")
+    for header in ["配送", "サイズ", "補償", "運賃"]:
+        check(f'Text("{header}")' in panel_text, f"一覧の見出し {header} がありません")
+    check("lowestFare" in panel_text and "semibold" in panel_text,
+          "最安の行が濃く太くなっていません")
+    check('Text("3辺合計")' in panel_text, "3辺合計のラベルがありません")
+
+    # 17. 画面から逃がした長い注記
+    for phrase in ["2026年11月時点", "セキュリティ", "美術品専門のスタッフ", "引き受けられない", "15号以下"]:
+        check(phrase not in panel_text, f"「{phrase}」が計算の画面に残っています")
+        check(phrase in notes_text, f"「{phrase}」が注記シートにありません")
 
     # 13. 代表的な号数の3辺合計と判定
     print()

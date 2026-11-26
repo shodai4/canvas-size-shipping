@@ -11,7 +11,7 @@ struct CanvasSizeShippingApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
                 .environmentObject(pro)
                 .task { await pro.load() }
                 .preferredColorScheme(.light)
